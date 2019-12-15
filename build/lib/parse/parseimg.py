@@ -108,7 +108,8 @@ def parseimg(excel_file_path):
             result['msg'] = 'unzip file failed'
             return result
     revert_dir(zip_file_path)
-    return image_list
+    data_json = json.dumps(image_list)
+    return data_json
 
 # 返回图片信息
 def img_info(drawings_path):
@@ -130,12 +131,12 @@ def img_info(drawings_path):
         fplace_dic = {}
         tplace_dic = {}
         fplace = twoCellAnchor.find('xmlns_xdr:from', ns)
-        fplace_dic['col'] = fplace[0].text
-        fplace_dic['row'] = fplace[2].text
+        fplace_dic['col'] = int(fplace[0].text)
+        fplace_dic['row'] = int(fplace[2].text)
         value_list.append(fplace_dic)
         tplace = twoCellAnchor.find('xmlns_xdr:to', ns)
-        tplace_dic['col'] = tplace[0].text
-        tplace_dic['row'] = tplace[2].text
+        tplace_dic['col'] = int(tplace[0].text)
+        tplace_dic['row'] = int(tplace[2].text)
         value_list.append(tplace_dic)
         pic = twoCellAnchor.find('xmlns_xdr:pic', ns)
         blipFill = pic.find('xmlns_xdr:blipFill', ns)
@@ -146,9 +147,8 @@ def img_info(drawings_path):
         img_list.append(value_list)
     return img_list
 
-# main
 # if __name__ == '__main__':
 #     #excel地址
 #     excel_path = 'C:\\Users\\luche\\Desktop\\EP13.xlsx'
-#     image_list = parseimg(excel_path)
-#     print(image_list)
+#     data_json = parseimg(excel_path)
+#     print(data_json)
