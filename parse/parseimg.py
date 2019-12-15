@@ -147,8 +147,8 @@ def img_info(drawings_path):
         img_list.append(value_list)
     return img_list
 
-if __name__ == '__main__':
-    #excel地址
-    excel_path = 'C:\\Users\\luche\\Desktop\\EP13.xlsx'
-    data_json = parseimg(excel_path)
-    print(data_json)
+# if __name__ == '__main__':
+#     #excel地址
+#     excel_path = 'C:\\Users\\luche\\Desktop\\EP13.xlsx'
+#     data_json = parseimg(excel_path)
+#     print(data_json)
