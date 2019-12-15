@@ -7,5 +7,6 @@
   - 调用parseimg方法，传入excel文件路径即可，返回excel图片信息
   - 返回信息json格式：
     - [[{图片起始列数，行数},{图片结束列数，行数},对应图片名称]]
+    - 相同图片，图片名称相同，通过不同位置信息区分。
     - [[{"col": 2, "row": 0}, {"col": 2, "row": 0}, "image1.png"], [{"col": 2, "row": 3}, {"col": 2, "row": 4}, "image2.png"], [{"col": 2, "row": 4}, {"col": 2, "row": 5}, "image3.png"], [{"col": 2, "row": 2}, {"col": 2, "row": 2}, "image2.png"]]
 
