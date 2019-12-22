@@ -4,7 +4,9 @@
   - 卸载**pip uninstall parseimg**即可
 - 使用方法
   - 安装成功后，导入相关模块方法**from parse.parseimg import parseimg**
-  - 调用parseimg方法，传入excel文件路径即可，返回excel图片信息
+  - 调用parseimg方法
+    - 传入excel文件路径即可，返回excel图片信息
+    - 传入excel文件路径和图片保存路径，将excel图片保存到指定路径，返回excel图片信息
   - 返回信息json格式：
     - [[{图片起始列数，行数},{图片结束列数，行数},对应图片名称]]
     - 相同图片，图片名称相同，通过不同位置信息区分。

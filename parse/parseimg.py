@@ -58,18 +58,28 @@ def unzip_file(zipfile_path):
     file_zip.close()
     return True
 
-
 # 读取解压后的文件夹，输出xml路径
-def read_img(zipfile_path):
+def read_img(zipfile_path, img_path=None):
     if not isfile_exist(zipfile_path):
         return False
-
     dir_path = os.path.dirname(zipfile_path)  # 获取文件所在目录
     file_name = os.path.basename(zipfile_path)  # 获取文件名
     unzip_dir = os.path.join(dir_path, str(file_name.split('.')[0]))
     # excel变成压缩包解压后，excel中的图片在media目录
+    if img_path:
+        pic_dir = 'xl' + os.sep + 'media'
+        pic_path = os.path.join(dir_path, str(file_name.split('.')[0]), pic_dir)
+        file_list = os.listdir(pic_path)
+        for file in file_list:
+            filepath = os.path.join(pic_path, file)
+            # print(filepath,img_path)
+            # 复制文件
+            if os.path.isfile(os.path.join(img_path, os.path.basename(filepath))):
+                os.remove(os.path.join(img_path, os.path.basename(filepath)))
+            shutil.move(filepath, img_path)
     drawings_path = os.path.join(unzip_dir, 'xl', 'drawings', 'drawing1.xml')
-    image_list = img_info(drawings_path)
+    drawings_rels_path = os.path.join(unzip_dir, 'xl', 'drawings', '_rels', 'drawing1.xml.rels')
+    image_list = img_info(drawings_path, drawings_rels_path)
     shutil.rmtree(unzip_dir)
     return image_list
 
@@ -93,33 +103,43 @@ def revert_dir(zipfile_path):
 
     return new_path  # 返回新的文件路径，压缩包
 
-
-# 提取图片，并保存
-def parseimg(excel_file_path):
-    # 返回图片信息
+def parseimg(excel_file_path, img_path=None):
+    """
+    返回图片信息
+    :param excel_file_path: excel地址
+    :param img_path: 图片地址：
+            1. img_path默认为空，可以不传，只返回图片位置信息
+            2. 指定img_path，则将excel图片解析到指定路径
+    """
     result = {}
     zip_file_path = change_file_name(excel_file_path)
+    if img_path != None and not os.path.exists(img_path):
+        os.makedirs(img_path)
     if zip_file_path != '':
-
         unzip_msg = unzip_file(zip_file_path)
         if unzip_msg:
-            image_list = read_img(zip_file_path)
+            image_list = read_img(zip_file_path, img_path)
         else:
             result['msg'] = 'unzip file failed'
             return result
     revert_dir(zip_file_path)
-    data_json = json.dumps(image_list)
-    return data_json
+    return image_list
 
 # 返回图片信息
-def img_info(drawings_path):
+def img_info(drawings_path, drawings_rels_path):
     try:
         tree = ET.parse(drawings_path)
+        rels_tree = ET.parse(drawings_rels_path)
         # 获得根节点
         root = tree.getroot()
+        rels_root = rels_tree.getroot()
     except Exception as e:  # 捕获除与程序退出sys.exit()相关之外的所有异常
         print("parse drawing1.xml or drawing1.xml.rels fail!")
         sys.exit()
+    rels_xmlns = '{http://schemas.openxmlformats.org/package/2006/relationships}'
+    rel_dict = {}
+    for rel in rels_root.iterfind(rels_xmlns + 'Relationship'):  # 在文件中查找Value的节点，生成器
+        rel_dict[rel.get('Id')] = rel.get('Target').replace('../media/','')
     ns = {'xmlns_xdr': 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing',
           'xmlns_a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
           'xmlns_r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
@@ -141,14 +161,26 @@ def img_info(drawings_path):
         pic = twoCellAnchor.find('xmlns_xdr:pic', ns)
         blipFill = pic.find('xmlns_xdr:blipFill', ns)
         blip = blipFill.find('xmlns_a:blip', ns)
-        value = blip.get(xmlns_r + 'embed').replace('rId','')
-        img_name = 'image' + value + '.png'
+        target = blip.get(xmlns_r + 'embed')
+        img_name = get_value(target, rel_dict)
         value_list.append(img_name)
         img_list.append(value_list)
     return img_list
 
+def get_value(target, rels_list):
+    """
+    通过key找到字典列表对应的value
+    :param target: 目标key
+    :param rels_list: 字典列表
+    :return: 对应的value
+    """
+    for key,value in rels_list.items():
+        if target == key:
+            return value
+
 # if __name__ == '__main__':
 #     #excel地址
 #     excel_path = 'C:\\Users\\luche\\Desktop\\EP13.xlsx'
-#     data_json = parseimg(excel_path)
+#     img = 'C:\\Users\\luche\\Desktop\\4444'
+#     data_json = parseimg(excel_path,img)
 #     print(data_json)
